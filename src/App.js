@@ -17,8 +17,10 @@ const initialState = {
   notes: [],
   loading: true,
   error: false,
-  form: { name: '', description: '' }
+  form: { name: '', description: '' },
+  exclamationClicked: false
 }
+
 
 
 function reducer(state, action) {
@@ -59,6 +61,7 @@ export default function App() {
       dispatch({ type: 'ERROR' })
     }
   }
+  
 
   useEffect(() => {
     fetchNotes()
@@ -74,6 +77,9 @@ export default function App() {
       })
     return () => subscription.unsubscribe()
   }, [])
+
+  const completed = state.notes.filter(n => n.completed).length;
+  const total = state.notes.length;
 
   return (
     <div style={styles.container}>
@@ -95,6 +101,11 @@ export default function App() {
         onClick={createNote}
         type="primary"
       >Create Note</Button>
+      <hr/>
+        <h3>
+          {completed} completed / {total} total
+        </h3>
+      <hr/>
       <List
         loading={state.loading}
         dataSource={state.notes}
@@ -103,7 +114,16 @@ export default function App() {
     </div>
   )
 
+  // render items on page
   function renderItem(item) {
+    const onAddExclamationClick = () => {
+      const notes = [...state.notes];
+      const index = notes.findIndex(n => n.id === item.id);
+      const updatedNote = { ...item, name: item.name + '!' };
+      notes[index] = updatedNote;
+      dispatch({ type: 'SET_NOTES', notes });
+    };
+  
     return (
       <List.Item
         style={styles.item}
@@ -111,7 +131,8 @@ export default function App() {
           <p style={styles.p} onClick={() => deleteNote(item)}>Delete</p>,
           <p style={styles.p} onClick={() => updateNote(item)}>
             {item.completed ? 'completed' : 'mark completed'}
-          </p>
+          </p>,
+          <Button onClick={onAddExclamationClick}>+!</Button>
         ]}
       >
         <List.Item.Meta
@@ -119,7 +140,7 @@ export default function App() {
           description={item.description}
         />
       </List.Item>
-    )
+    );
   }
 
   // create note
